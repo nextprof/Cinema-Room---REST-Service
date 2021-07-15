@@ -66,6 +66,32 @@ public class SeatController {
                 .body(new Error("Wrong token!"));
     }
 
+    @PostMapping(value="/stats")
+    public ResponseEntity<?> returnStats
+            (@RequestParam(value = "password", required = false) String password) {
+
+        if(password==null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new Error("The password is wrong!"));
+
+        int current_income = getCurrentIncome();
+        int number_of_available_seats = getAvailableSeats().size();
+        int number_of_purchased_tickets = total_rows * total_columns - number_of_available_seats;
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of( "current_income", current_income,
+                        "number_of_available_seats",number_of_available_seats,
+                        "number_of_purchased_tickets",number_of_purchased_tickets));
+    }
+
+    public int getCurrentIncome()
+    {
+        return boughtTickets.stream()
+                .map(Ticket::getTicket)
+                .map(Seat::getPrice)
+                .mapToInt(Integer::intValue)
+                .sum();
+    }
+
     public List<Seat> initAvailableSeats() {
         List<Seat> seats = new ArrayList<>();
 
